@@ -1,19 +1,19 @@
 const express = require("express");
-const request = require("request");
 const bodyParser = require("body-parser");
 const https = require("https");
+const serverless = require("serverless-http");
+const path = require("path");
 
+const router = express.Router();
 const app = express();
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// page routing
-
-app.get("/", function (req, res) {
-  res.sendFile(__dirname + "/signup.html");
+router.get("/", function (req, res) {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-app.post("/", function (req, res) {
+router.post("/", function (req, res) {
   const firstName = req.body.fname;
   const lastName = req.body.lname;
   const email = req.body.email;
@@ -29,7 +29,7 @@ app.post("/", function (req, res) {
       },
     ],
   };
-  var jsoneData = JSON.stringify(data);
+  var jsonData = JSON.stringify(data);
   const url = "https://us21.api.mailchimp.com/3.0/lists/5fa6c489ab";
   const options = {
     method: "POST",
@@ -37,25 +37,24 @@ app.post("/", function (req, res) {
   };
 
   const request = https.request(url, options, function (response) {
-    if (response.error_code === 0) {
-      res.sendFile(__dirname + "/success.html");
+    let responseCode = response.statusCode;
+    if (responseCode === 200) {
+      res.sendFile(path.join(__dirname, "public", "success.html"));
     } else {
-      res.sendFile(__dirname + "/failure.html");
+      res.sendFile(path.join(__dirname, "public", "failure.html"));
     }
     response.on("data", function (data) {
       console.log(JSON.parse(data));
     });
   });
-  request.write(jsoneData);
+  request.write(jsonData);
   request.end();
 });
-app.post("/failure", function (req, res) {
+
+router.post("/failure", function (req, res) {
   res.redirect("/");
 });
 
-app.listen(process.env.PORT, function () {
-  console.log("server running on port 3000 sucessfully!");
-});
-
-// API Key :- 227e17342f8159d33012c372183594ef-us21
-// audionce id :- 5fa6c489ab
+app.use("/api", router);
+module.exports = app;
+module.exports.handler = serverless(app);
