@@ -33,7 +33,7 @@ router.post("/", function (req, res) {
   const url = "https://us21.api.mailchimp.com/3.0/lists/5fa6c489ab";
   const options = {
     method: "POST",
-    auth: "vaibhav:227e17342f8159d33012c372183594ef-us21",
+    auth: "vaibhav:227e17342f8159d33012c372183594ef-us21",// its revoked one, use .env file to save so that your api will not get public and will be safe as required 
   };
 
   const request = https.request(url, options, function (response) {
